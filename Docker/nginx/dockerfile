@@ -1,0 +1,29 @@
+FROM        debian:latest
+MAINTAINER  Jonathan Tittle <jtittle@habanero.io>
+
+RUN         apt-get update \
+            && apt-get -y upgrade \
+            && apt-get install -y nginx \
+            && rm /etc/nginx/nginx.conf \
+            && rm -R /var/www/html \
+            && rm -R /etc/nginx/sites-available \
+            && rm -R /etc/nginx/sites-enabled \
+            && bash -c 'useradd -M -d /etc/nginx nginx' \
+            && bash -c 'mkdir -p /etc/nginx/{cache,logs,sites,tmp}' \
+            && bash -c 'mkdir -p /etc/nginx/logs/{access,error}' \
+            && bash -c 'mkdir -p /etc/nginx/cache/proxy' \
+            && bash -c 'mkdir -p /home/container/htdocs/{logs,public,private}' \
+            && bash -c 'mkdir -p /home/container/htdocs/logs/{access,error}' \
+            && bash -c 'touch /home/container/htdocs/logs/access/access.log' \
+            && bash -c 'touch /home/container/htdocs/logs/error/error.log' \
+            && bash -c 'touch /etc/nginx/logs/access/access.log' \
+            && bash -c 'touch /etc/nginx/logs/error/error.log'
+
+ADD         conf.d/nginx.conf /etc/nginx/
+ADD         conf.d/drop.conf /etc/nginx/conf.d/
+ADD         conf.d/phpfpm.conf /etc/nginx/conf.d/
+ADD         conf.d/staticfiles.conf /etc/nginx/conf.d/
+ADD         files/index.html /home/container/htdocs/public/
+ADD         sites/default.conf /etc/nginx/sites/
+
+CMD         ["nginx", "-g", "daemon off;"]
